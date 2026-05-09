@@ -22,11 +22,9 @@ const ADMIN_TOKEN = process.env.API_KEY;
  * @returns {Promise<Array>} - 回傳 products 陣列
  */
 async function getProducts() {
-	// 請實作此函式
-	// 提示：
-	// 1. 使用 fetch() 發送 GET 請求
-	// 2. 使用 response.json() 解析回應
-	// 3. 回傳 data.products
+    const response = await fetch(`${BASE_URL}/api/livejs/v1/customer/${API_PATH}/products`);
+    const data = await response.json();
+    return data.products;
 }
 
 /**
@@ -34,7 +32,9 @@ async function getProducts() {
  * @returns {Promise<Object>} - 回傳 { carts: [...], total: 數字, finalTotal: 數字 }
  */
 async function getCart() {
-	// 請實作此函式
+    const response = await fetch(`${BASE_URL}/api/livejs/v1/customer/${API_PATH}/carts`);
+    const data = await response.json();
+    return data;
 }
 
 /**
@@ -42,12 +42,18 @@ async function getCart() {
  * @returns {Promise<Object>} - 回傳 { success: boolean, data?: [...], error?: string }
  */
 async function getProductsSafe() {
-	// 請實作此函式
-	// 提示：
-	// 1. 加上 try-catch 處理錯誤
-	// 2. 檢查 response.ok 判斷是否成功
-	// 3. 成功回傳 { success: true, data: [...] }
-	// 4. 失敗回傳 { success: false, error: '錯誤訊息' }
+    try {
+        const response = await fetch(`${BASE_URL}/api/livejs/v1/customer/${API_PATH}/products`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP 錯誤！狀態碼：${response.status}`);
+        }
+        
+        const data = await response.json();
+        return { success: true, data: data.products };
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
 }
 
 // ========================================
@@ -61,12 +67,20 @@ async function getProductsSafe() {
  * @returns {Promise<Object>} - 回傳更新後的購物車資料
  */
 async function addToCart(productId, quantity) {
-	// 請實作此函式
-	// 提示：
-	// 1. 發送 POST 請求
-	// 2. body 格式：{ data: { productId: "xxx", quantity: 1 } }
-	// 3. 記得設定 headers: { 'Content-Type': 'application/json' }
-	// 4. body 要用 JSON.stringify() 轉換
+    const response = await fetch(`${BASE_URL}/api/livejs/v1/customer/${API_PATH}/carts`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            data: {
+                productId: productId,
+                quantity: quantity
+            }
+        })
+    });
+    const data = await response.json();
+    return data;
 }
 
 /**
@@ -76,10 +90,20 @@ async function addToCart(productId, quantity) {
  * @returns {Promise<Object>} - 回傳更新後的購物車資料
  */
 async function updateCartItem(cartId, quantity) {
-	// 請實作此函式
-	// 提示：
-	// 1. 發送 PATCH 請求
-	// 2. body 格式：{ data: { id: "購物車ID", quantity: 數量 } }
+    const response = await fetch(`${BASE_URL}/api/livejs/v1/customer/${API_PATH}/carts`, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            data: {
+                id: cartId,
+                quantity: quantity
+            }
+        })
+    });
+    const data = await response.json();
+    return data;
 }
 
 /**
@@ -88,8 +112,11 @@ async function updateCartItem(cartId, quantity) {
  * @returns {Promise<Object>} - 回傳更新後的購物車資料
  */
 async function removeCartItem(cartId) {
-	// 請實作此函式
-	// 提示：發送 DELETE 請求到 /carts/{id}
+    const response = await fetch(`${BASE_URL}/api/livejs/v1/customer/${API_PATH}/carts/${cartId}`, {
+        method: 'DELETE'
+    });
+    const data = await response.json();
+    return data;
 }
 
 /**
@@ -97,8 +124,11 @@ async function removeCartItem(cartId) {
  * @returns {Promise<Object>} - 回傳清空後的購物車資料
  */
 async function clearCart() {
-	// 請實作此函式
-	// 提示：發送 DELETE 請求到 /carts
+    const response = await fetch(`${BASE_URL}/api/livejs/v1/customer/${API_PATH}/carts`, {
+        method: 'DELETE'
+    });
+    const data = await response.json();
+    return data;
 }
 
 // ========================================
@@ -110,13 +140,22 @@ async function clearCart() {
 
 1. HTTP 狀態碼的分類（1xx, 2xx, 3xx, 4xx, 5xx 各代表什麼）
    答：
+   - 1xx (Informational 資訊)：伺服器已收到請求，請客戶端繼續執行。
+   - 2xx (Success 成功)：請求已成功被伺服器接收與處理（最常見如 200 OK）。
+   - 3xx (Redirection 重新導向)：需要進一步的操作才能完成請求（例如網址轉址）。
+   - 4xx (Client Error 客戶端錯誤)：請求包含語法錯誤或無法完成，問題出在客戶端（如 404 Not Found, 400 Bad Request）。
+   - 5xx (Server Error 伺服器錯誤)：伺服器在處理請求的過程中發生錯誤，問題出在後端（如 500 Internal Server Error）。
 
 2. GET、POST、PATCH、PUT、DELETE 的差異
    答：
+   - GET：用於從伺服器獲取資源。
+   - POST：新增資料。或是提交表單資料給伺服器處理。
+   - PUT：替換資料。通常會提供完整的資料來覆蓋整筆舊資料。
+   - PATCH：修改部分資料。只提供需要修改的特定欄位，不會影響其他欄位。
+   - DELETE：刪除資料。
 
 3. 什麼是 RESTful API？
-   答：
-
+   答：RESTful API 是一種網路軟體架構的設計風格。它強調將網路上所有的事物視為「資源 (Resource)」，並透過有意義且一致的 URL 網址來代表這些資源，同時搭配標準的 HTTP 動詞（GET, POST, PUT, PATCH, DELETE）來對資源進行 CRUD（建立、讀取、更新、刪除）操作，讓 API 的設計更加直覺、語意化且易於維護。
 
 */
 
